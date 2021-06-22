@@ -6,10 +6,12 @@
 
 package stanford.karel;
 
-import acm.util.*;
+import acm.util.ErrorException;
+
 import java.awt.*;
 
 /* Class: Karel */
+
 /**
  * The <code>Karel</code> class represents the simplest possible Karel-the-Robot
  * object.  Each instance of the <code>Karel</code> class represents an individual
@@ -56,360 +58,369 @@ import java.awt.*;
 
 public class Karel implements Runnable {
 
-/**
- * Creates a new <code>Karel</code> object.  You will not
- * ordinarily need to call this method explicitly; it is
- * the default constructor and will be executed automatically
- * if you write a Karel program.
- */
-	public Karel() {
-		x = 1;
-		y = 1;
-		dir = EAST;
-		world = null;
-	}
+    private static final int NORTH = KarelWorld.NORTH;
+    private static final int EAST = KarelWorld.EAST;
+    private static final int SOUTH = KarelWorld.SOUTH;
+    private static final int WEST = KarelWorld.WEST;
+    private KarelWorld world;
+    private int x, y;
+    private int dir;
+    private int beepers;
 
-/**
- * Specifies the code for this <code>Karel</code> program.
- * You need to provide a new implementation of this method
- * whenever you extend <code>Karel</code>.
- */
-	public void run() {
-		/* Empty */
-	}
+    /**
+     * Creates a new <code>Karel</code> object.  You will not
+     * ordinarily need to call this method explicitly; it is
+     * the default constructor and will be executed automatically
+     * if you write a Karel program.
+     */
+    public Karel() {
+        x = 1;
+        y = 1;
+        dir = EAST;
+        world = null;
+    }
 
-/**
- * Instructs Karel to move forward to the next corner.  This
- * method fails if Karel is blocked by a wall.
- */
-	public void move() {
-		checkWorld("move");
-		if (world.checkWall(x, y, dir)) throw new ErrorException("Karel is blocked");
-		setLocation(KarelWorld.adjacentPoint(x, y, dir));
-		world.trace();
-	}
+    public static void main(String[] args) {
+        String[] newArgs = new String[args.length + 1];
+        for (int i = 0; i < args.length; i++) {
+            newArgs[i] = args[i];
+        }
+        newArgs[args.length] = "program=stanford.karel.KarelProgram";
+        KarelProgram.main(newArgs);
+    }
 
-/**
- * Instructs Karel to turn left by 90 degrees.
- */
-	public void turnLeft() {
-		checkWorld("turnLeft");
-		setDirection(KarelWorld.leftFrom(dir));
-		world.trace();
-	}
+    /**
+     * Specifies the code for this <code>Karel</code> program.
+     * You need to provide a new implementation of this method
+     * whenever you extend <code>Karel</code>.
+     */
+    public void run() {
+        /* Empty */
+    }
 
-/**
- * Instructs Karel to pick up a beeper from the current
- * corner.  This method fails if there are no beepers present.
- */
-	public void pickBeeper() {
-		checkWorld("pickBeeper");
-		int nb = world.getBeepersOnCorner(x, y);
-		if (nb < 1) throw new ErrorException("pickBeeper: No beepers on this corner");
-		world.setBeepersOnCorner(x, y, KarelWorld.adjustBeepers(nb, -1));
-		setBeepersInBag(KarelWorld.adjustBeepers(getBeepersInBag(), +1));
-		world.trace();
-	}
+    /**
+     * Instructs Karel to move forward to the next corner.  This
+     * method fails if Karel is blocked by a wall.
+     */
+    public void move() {
+        checkWorld("move");
+        if (world.checkWall(x, y, dir)) throw new ErrorException("Karel is blocked");
+        setLocation(KarelWorld.adjacentPoint(x, y, dir));
+        world.trace();
+    }
 
-/**
- * Instructs Karel to take a beeper from its beeper bag and place
- * it on the current corner.  This method fails if there are no
- * beepers in the bag.
- */
-	public void putBeeper() {
-		checkWorld("putBeeper");
-		int nb = getBeepersInBag();
-		if (nb < 1) throw new ErrorException("putBeeper: No beepers in bag");
-		world.setBeepersOnCorner(x, y, KarelWorld.adjustBeepers(world.getBeepersOnCorner(x, y), +1));
-		setBeepersInBag(KarelWorld.adjustBeepers(nb, -1));
-		world.trace();
-	}
+    /**
+     * Instructs Karel to turn left by 90 degrees.
+     */
+    public void turnLeft() {
+        checkWorld("turnLeft");
+        setDirection(KarelWorld.leftFrom(dir));
+        world.trace();
+    }
 
-/**
- * Checks to see if Karel can move forward.
- *
- * @return <code>true</code> if the corner in front of Karel is clear
- */
-	public boolean frontIsClear() {
-		checkWorld("frontIsClear");
-		return !world.checkWall(x, y, dir);
-	}
+    /**
+     * Instructs Karel to pick up a beeper from the current
+     * corner.  This method fails if there are no beepers present.
+     */
+    public void pickBeeper() {
+        checkWorld("pickBeeper");
+        int nb = world.getBeepersOnCorner(x, y);
+        if (nb < 1) throw new ErrorException("pickBeeper: No beepers on this corner");
+        world.setBeepersOnCorner(x, y, KarelWorld.adjustBeepers(nb, -1));
+        setBeepersInBag(KarelWorld.adjustBeepers(getBeepersInBag(), +1));
+        world.trace();
+    }
 
-/**
- * Checks to see if Karel is blocked by a wall.
- *
- * @return <code>true</code> if there is a wall in front of Karel
- */
-	public boolean frontIsBlocked() {
-		checkWorld("frontIsBlocked");
-		return world.checkWall(x, y, dir);
-	}
+    /**
+     * Instructs Karel to take a beeper from its beeper bag and place
+     * it on the current corner.  This method fails if there are no
+     * beepers in the bag.
+     */
+    public void putBeeper() {
+        checkWorld("putBeeper");
+        int nb = getBeepersInBag();
+        if (nb < 1) throw new ErrorException("putBeeper: No beepers in bag");
+        world.setBeepersOnCorner(x, y, KarelWorld.adjustBeepers(world.getBeepersOnCorner(x, y), +1));
+        setBeepersInBag(KarelWorld.adjustBeepers(nb, -1));
+        world.trace();
+    }
 
-/**
- * Checks to see if there is no wall to Karel's left.
- *
- * @return <code>true</code> if there is no wall to Karel's left
- */
-	public boolean leftIsClear() {
-		checkWorld("leftIsClear");
-		return !world.checkWall(x, y, KarelWorld.leftFrom(dir));
-	}
+    /**
+     * Checks to see if Karel can move forward.
+     *
+     * @return <code>true</code> if the corner in front of Karel is clear
+     */
+    public boolean frontIsClear() {
+        checkWorld("frontIsClear");
+        return !world.checkWall(x, y, dir);
+    }
 
-/**
- * Checks to see if there is a wall to Karel's left.
- *
- * @return <code>true</code> if there is a wall to Karel's left
- */
-	public boolean leftIsBlocked() {
-		checkWorld("leftIsBlocked");
-		return world.checkWall(x, y, KarelWorld.leftFrom(dir));
-	}
+    /**
+     * Checks to see if Karel is blocked by a wall.
+     *
+     * @return <code>true</code> if there is a wall in front of Karel
+     */
+    public boolean frontIsBlocked() {
+        checkWorld("frontIsBlocked");
+        return world.checkWall(x, y, dir);
+    }
 
-/**
- * Checks to see if there is no wall to Karel's right.
- *
- * @return <code>true</code> if there is no wall to Karel's right
- */
-	public boolean rightIsClear() {
-		checkWorld("rightIsClear");
-		return !world.checkWall(x, y, KarelWorld.rightFrom(dir));
-	}
+    /**
+     * Checks to see if there is no wall to Karel's left.
+     *
+     * @return <code>true</code> if there is no wall to Karel's left
+     */
+    public boolean leftIsClear() {
+        checkWorld("leftIsClear");
+        return !world.checkWall(x, y, KarelWorld.leftFrom(dir));
+    }
 
-/**
- * Checks to see if there is a wall to Karel's right.
- *
- * @return <code>true</code> if there is a wall to Karel's right
- */
-	public boolean rightIsBlocked() {
-		checkWorld("rightIsBlocked");
-		return world.checkWall(x, y, KarelWorld.rightFrom(dir));
-	}
+    /**
+     * Checks to see if there is a wall to Karel's left.
+     *
+     * @return <code>true</code> if there is a wall to Karel's left
+     */
+    public boolean leftIsBlocked() {
+        checkWorld("leftIsBlocked");
+        return world.checkWall(x, y, KarelWorld.leftFrom(dir));
+    }
 
-/**
- * Checks to see if the current corner has at least one beeper.
- *
- * @return <code>true</code> if there are any beepers on this corner
- */
-	public boolean ballsPresent() {
-		checkWorld("beepersPresent");
-		return world.getBeepersOnCorner(x, y) > 0;
-	}
+    /**
+     * Checks to see if there is no wall to Karel's right.
+     *
+     * @return <code>true</code> if there is no wall to Karel's right
+     */
+    public boolean rightIsClear() {
+        checkWorld("rightIsClear");
+        return !world.checkWall(x, y, KarelWorld.rightFrom(dir));
+    }
 
-/**
- * Checks to see if the current corner is empty of beepers.
- *
- * @return <code>true</code> if there are no beepers on this corner
- */
-	public boolean noBallsPresent() {
-		checkWorld("noBeepersPresent");
-		return world.getBeepersOnCorner(x, y) == 0;
-	}
+    /**
+     * Checks to see if there is a wall to Karel's right.
+     *
+     * @return <code>true</code> if there is a wall to Karel's right
+     */
+    public boolean rightIsBlocked() {
+        checkWorld("rightIsBlocked");
+        return world.checkWall(x, y, KarelWorld.rightFrom(dir));
+    }
 
-/**
- * Checks to see if the beeper bag contains at least one beeper.
- *
- * @return <code>true</code> if there are any beepers in the bag
- */
-	public boolean beepersInBag() {
-		checkWorld("beepersInBag");
-		return getBeepersInBag() > 0;
-	}
+    /**
+     * Checks to see if the current corner has at least one beeper.
+     *
+     * @return <code>true</code> if there are any beepers on this corner
+     */
+    public boolean beepersPresent() {
+        checkWorld("beepersPresent");
+        return world.getBeepersOnCorner(x, y) > 0;
+    }
 
-/**
- * Checks to see if the beeper bag is empty.
- *
- * @return <code>true</code> if there are no beepers in the bag
- */
-	public boolean noBeepersInBag() {
-		checkWorld("noBeepersInBag");
-		return getBeepersInBag() == 0;
-	}
+    public boolean ballsPresent() {
+        return beepersPresent();
+    }
 
-/**
- * Checks to see if Karel is facing north.
- *
- * @return <code>true</code> if Karel is facing north
- */
-	public boolean facingNorth() {
-		checkWorld("facingNorth");
-		return dir == NORTH;
-	}
+    /**
+     * Checks to see if the current corner is empty of beepers.
+     *
+     * @return <code>true</code> if there are no beepers on this corner
+     */
+    public boolean BeepersPresent() {
+        checkWorld("noBeepersPresent");
+        return world.getBeepersOnCorner(x, y) == 0;
+    }
 
-/**
- * Checks to see if Karel is facing east.
- *
- * @return <code>true</code> if Karel is facing east
- */
-	public boolean facingEast() {
-		checkWorld("facingEast");
-		return dir == EAST;
-	}
+    public boolean noBallsPresent() {
+        return BeepersPresent();
+    }
 
-/**
- * Checks to see if Karel is facing south.
- *
- * @return <code>true</code> if Karel is facing south
- */
-	public boolean facingSouth() {
-		checkWorld("facingSouth");
-		return dir == SOUTH;
-	}
+    /**
+     * Checks to see if the beeper bag contains at least one beeper.
+     *
+     * @return <code>true</code> if there are any beepers in the bag
+     */
+    public boolean beepersInBag() {
+        checkWorld("beepersInBag");
+        return getBeepersInBag() > 0;
+    }
 
-/**
- * Checks to see if Karel is facing west.
- *
- * @return <code>true</code> if Karel is facing west
- */
-	public boolean facingWest() {
-		checkWorld("facingWest");
-		return dir == WEST;
-	}
+    /* Entry points for program operation */
 
-/**
- * Checks to see if Karel is facing some direction other than north.
- *
- * @return <code>true</code> if Karel is not facing north
- */
-	public boolean notFacingNorth() {
-		checkWorld("notFacingNorth");
-		return dir != NORTH;
-	}
+    /**
+     * Checks to see if the beeper bag is empty.
+     *
+     * @return <code>true</code> if there are no beepers in the bag
+     */
+    public boolean noBeepersInBag() {
+        checkWorld("noBeepersInBag");
+        return getBeepersInBag() == 0;
+    }
 
-/**
- * Checks to see if Karel is facing some direction other than east.
- *
- * @return <code>true</code> if Karel is not facing east
- */
-	public boolean notFacingEast() {
-		checkWorld("notFacingEast");
-		return dir != EAST;
-	}
+    /* Protected method: start() */
 
-/**
- * Checks to see if Karel is facing some direction other than south.
- *
- * @return <code>true</code> if Karel is not facing south
- */
-	public boolean notFacingSouth() {
-		checkWorld("notFacingSouth");
-		return dir != SOUTH;
-	}
+    /**
+     * Checks to see if Karel is facing north.
+     *
+     * @return <code>true</code> if Karel is facing north
+     */
+    public boolean facingNorth() {
+        checkWorld("facingNorth");
+        return dir == NORTH;
+    }
 
-/**
- * Checks to see if Karel is facing some direction other than west.
- *
- * @return <code>true</code> if Karel is not facing west
- */
-	public boolean notFacingWest() {
-		checkWorld("notFacingWest");
-		return dir != WEST;
-	}
+    /* Protected method: start(args) */
 
-/* Entry points for program operation */
+    /**
+     * Checks to see if Karel is facing east.
+     *
+     * @return <code>true</code> if Karel is facing east
+     */
+    public boolean facingEast() {
+        checkWorld("facingEast");
+        return dir == EAST;
+    }
 
-	public static void main(String[] args) {
-		String[] newArgs = new String[args.length + 1];
-		for (int i = 0; i < args.length; i++) {
-			newArgs[i] = args[i];
-		}
-		newArgs[args.length] = "program=stanford.karel.KarelProgram";
-		KarelProgram.main(newArgs);
-	}
+    /* Protected methods */
 
-/* Protected method: start() */
-/**
- * Starts a <code>GraphicsProgram</code> containing this object.
- */
-	protected void start() {
-		start(null);
-	}
+    /**
+     * Checks to see if Karel is facing south.
+     *
+     * @return <code>true</code> if Karel is facing south
+     */
+    public boolean facingSouth() {
+        checkWorld("facingSouth");
+        return dir == SOUTH;
+    }
 
-/* Protected method: start(args) */
-/**
- * Starts a <code>KarelProgram</code> containing this Karel instance, passing
- * it the specified arguments.
- */
-	protected void start(String[] args) {
-		KarelProgram program = new KarelProgram();
-		program.setStartupObject(this);
-		program.start(args);
-	}
+    /**
+     * Checks to see if Karel is facing west.
+     *
+     * @return <code>true</code> if Karel is facing west
+     */
+    public boolean facingWest() {
+        checkWorld("facingWest");
+        return dir == WEST;
+    }
 
-/* Protected methods */
+    /**
+     * Checks to see if Karel is facing some direction other than north.
+     *
+     * @return <code>true</code> if Karel is not facing north
+     */
+    public boolean notFacingNorth() {
+        checkWorld("notFacingNorth");
+        return dir != NORTH;
+    }
 
-	protected Point getLocation() {
-		return new Point(x, y);
-	}
+    /**
+     * Checks to see if Karel is facing some direction other than east.
+     *
+     * @return <code>true</code> if Karel is not facing east
+     */
+    public boolean notFacingEast() {
+        checkWorld("notFacingEast");
+        return dir != EAST;
+    }
 
-	protected void setLocation(Point pt) {
-		setLocation(pt.x, pt.y);
-	}
+    /**
+     * Checks to see if Karel is facing some direction other than south.
+     *
+     * @return <code>true</code> if Karel is not facing south
+     */
+    public boolean notFacingSouth() {
+        checkWorld("notFacingSouth");
+        return dir != SOUTH;
+    }
 
-	protected void setLocation(int x, int y) {
-		if (world != null) {
-			if (world.outOfBounds(x, y)) throw new ErrorException("setLocation: Out of bounds");
-			Karel occupant = world.getKarelOnSquare(x, y);
-			if (occupant == this) return;
-			if (occupant != null) throw new ErrorException("setLocation: Square is already occupied");
-		}
-		int x0 = this.x;
-		int y0 = this.y;
-		this.x = x;
-		this.y = y;
-		if (world != null) {
-			world.updateCorner(x, y);
-			world.updateCorner(x0, y0);
-		}
-	}
+    /**
+     * Checks to see if Karel is facing some direction other than west.
+     *
+     * @return <code>true</code> if Karel is not facing west
+     */
+    public boolean notFacingWest() {
+        checkWorld("notFacingWest");
+        return dir != WEST;
+    }
 
-	protected int getDirection() {
-		return dir;
-	}
+    /**
+     * Starts a <code>GraphicsProgram</code> containing this object.
+     */
+    protected void start() {
+        start(null);
+    }
 
-	protected void setDirection(int dir) {
-		this.dir = dir;
-		if (world != null) world.updateCorner(x, y);
-	}
+    /**
+     * Starts a <code>KarelProgram</code> containing this Karel instance, passing
+     * it the specified arguments.
+     */
+    protected void start(String[] args) {
+        KarelProgram program = new KarelProgram();
+        program.setStartupObject(this);
+        program.start(args);
+    }
 
-	protected int getBeepersInBag() {
-	    return (beepers);
-	}
+    protected Point getLocation() {
+        return new Point(x, y);
+    }
 
-	protected void setBeepersInBag(int nBeepers) {
-	    beepers = nBeepers;
-	}
+    protected void setLocation(Point pt) {
+        setLocation(pt.x, pt.y);
+    }
 
-	protected KarelWorld getWorld() {
-		return world;
-	}
+    protected void setLocation(int x, int y) {
+        if (world != null) {
+            if (world.outOfBounds(x, y)) throw new ErrorException("setLocation: Out of bounds");
+            Karel occupant = world.getKarelOnSquare(x, y);
+            if (occupant == this) return;
+            if (occupant != null) throw new ErrorException("setLocation: Square is already occupied");
+        }
+        int x0 = this.x;
+        int y0 = this.y;
+        this.x = x;
+        this.y = y;
+        if (world != null) {
+            world.updateCorner(x, y);
+            world.updateCorner(x0, y0);
+        }
+    }
 
-	protected void setWorld(KarelWorld world) {
-		this.world = world;
-	}
+    /* Private constants */
 
-	protected void checkWorld(String caller) {
-		if (world == null) throw new ErrorException(caller + ": Karel is not living in a world");
-	}
+    protected int getDirection() {
+        return dir;
+    }
 
-	public void setDisplayOneFlag(boolean flag) {
-		world.setDisplayOneFlag(flag);
-	}
+    protected void setDirection(int dir) {
+        this.dir = dir;
+        if (world != null) world.updateCorner(x, y);
+    }
 
-/* Private constants */
+    protected int getBeepersInBag() {
+        return (beepers);
+    }
 
-	private static final int NORTH = KarelWorld.NORTH;
-	private static final int EAST = KarelWorld.EAST;
-	private static final int SOUTH = KarelWorld.SOUTH;
-	private static final int WEST = KarelWorld.WEST;
+    protected void setBeepersInBag(int nBeepers) {
+        beepers = nBeepers;
+    }
 
-/* Private state */
+    /* Private state */
 
-	private KarelWorld world;
-	private int x, y;
-	private int dir;
-	private int beepers;
+    protected KarelWorld getWorld() {
+        return world;
+    }
 
-  public void exit() {
-    System.out.println("Exit!");
-  }
+    protected void setWorld(KarelWorld world) {
+        this.world = world;
+    }
+
+    protected void checkWorld(String caller) {
+        if (world == null) throw new ErrorException(caller + ": Karel is not living in a world");
+    }
+
+    public void setDisplayOneFlag(boolean flag) {
+        world.setDisplayOneFlag(flag);
+    }
+
+    public void exit() {
+        System.out.println("Exit!");
+    }
 }
